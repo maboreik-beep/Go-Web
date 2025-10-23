@@ -1,6 +1,10 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { WebsiteContent, SectionConfig, TextContent, Page, LanguageMode, TemplateId } from '../types';
 import { AVAILABLE_SECTIONS } from '../constants';
+import { useAuth } from './AuthContext';
+import { isFirebaseConfigured, db } from '../firebaseConfig';
+import { collection, query, where, getDocs, addDoc, updateDoc, serverTimestamp, doc, Timestamp } from 'firebase/firestore';
+import { useDebounce } from '../hooks/useDebounce';
 
 const createDefaultText = (en: string, ar: string, mode: LanguageMode): TextContent => {
     if (mode === 'bilingual') {
@@ -15,7 +19,6 @@ const createDefaultText = (en: string, ar: string, mode: LanguageMode): TextCont
 const createDefaultPage = (mode: LanguageMode): Page => {
     // Generate sections from the central constant for consistency
     const sections: SectionConfig[] = AVAILABLE_SECTIONS.map(s => ({
-        // FIX: Corrected the type assertion. The original `keyof SectionConfig['id']` was incorrect as it resolves to `keyof (keyof SectionContent)`. The correct type is `SectionConfig['id']` which is `keyof SectionContent`.
         id: s.id as SectionConfig['id'],
         name: s.name,
         // Define default visibility for the homepage here
@@ -82,6 +85,7 @@ export const createDefaultContent = (mode: LanguageMode = 'en', templateId: Temp
         siteName: createDefaultText('My Awesome Site', 'موقعي الرائع', mode),
         pages: [homePage],
         activePageId: homePage.id,
+        userId: '',
     };
 };
 
@@ -95,13 +99,13 @@ interface WebsiteBuilderContextType {
     createPage: (newPage: Page) => void;
     deletePage: (id: string) => void;
     setActivePageId: (id: string) => void;
-    isSaving: boolean; // Kept for UI compatibility, but will always be false
-    lastSaved: Date | null; // Kept for UI compatibility, but will always be null
+    isSaving: boolean;
+    lastSaved: Date | null;
     isLoadingContent: boolean;
     isNewWebsite: boolean;
     setIsNewWebsite: (isNew: boolean) => void;
     loadContent: () => Promise<void>;
-    docId: string | null; // Kept for UI compatibility, but will be a mock ID
+    docId: string | null;
 }
 
 const WebsiteBuilderContext = createContext<WebsiteBuilderContextType | undefined>(undefined);
@@ -120,30 +124,79 @@ const setIn = (obj: any, path: string[], value: any): any => {
 
 
 export const WebsiteBuilderProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { user } = useAuth();
     const [content, setContent] = useState<WebsiteContent>(createDefaultContent());
+    const [docId, setDocId] = useState<string | null>(null);
     const [isLoadingContent, setIsLoadingContent] = useState(true);
-    const [isNewWebsite, setIsNewWebsite] = useState(true); // Always start with the new website flow
+    const [isNewWebsite, setIsNewWebsite] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-    const docId = 'local_preview'; // Mock ID
+    const debouncedContent = useDebounce(content, 2000);
 
     const activePage = useMemo(() => content.pages.find(p => p.id === content.activePageId), [content.pages, content.activePageId]);
     const activePageIndex = useMemo(() => content.pages.findIndex(p => p.id === content.activePageId), [content.pages, content.activePageId]);
 
     const loadContent = useCallback(async () => {
-        // In preview mode, this just resets the state to the default.
+        if (!user || !isFirebaseConfigured || !db) {
+            setContent(createDefaultContent());
+            setIsNewWebsite(true);
+            setIsLoadingContent(false);
+            return;
+        }
+
         setIsLoadingContent(true);
-        setContent(createDefaultContent());
-        setIsNewWebsite(true); // Always trigger the setup modal on "load"
+        const q = query(collection(db, "websites"), where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            setIsNewWebsite(true);
+            setContent(createDefaultContent());
+            setDocId(null);
+        } else {
+            const doc = querySnapshot.docs[0];
+            const data = doc.data() as WebsiteContent;
+            if(data.lastUpdated) {
+                setLastSaved((data.lastUpdated as Timestamp).toDate());
+            }
+            setContent(data);
+            setDocId(doc.id);
+            setIsNewWebsite(false);
+        }
         setIsLoadingContent(false);
-    }, []);
+    }, [user]);
 
     useEffect(() => {
-        // Initial load.
-        setIsLoadingContent(true);
-        setContent(createDefaultContent());
-        setIsNewWebsite(true);
-        setIsLoadingContent(false);
-    }, []);
+        loadContent();
+    }, [loadContent]);
+
+    // Debounced save effect
+    useEffect(() => {
+        const saveContent = async () => {
+            if (!isFirebaseConfigured || !db || !user || isSaving || isLoadingContent || isNewWebsite || !docId) {
+                return;
+            }
+
+            setIsSaving(true);
+            const docRef = doc(db, 'websites', docId);
+            try {
+                await updateDoc(docRef, {
+                    ...debouncedContent,
+                    lastUpdated: serverTimestamp()
+                });
+                setLastSaved(new Date());
+            } catch (error) {
+                console.error("Error updating document:", error);
+            } finally {
+                setIsSaving(false);
+            }
+        };
+
+        if (debouncedContent.userId) { // Only save if content has been initialized with a user
+             saveContent();
+        }
+    }, [debouncedContent, user, docId, isNewWebsite, isLoadingContent]);
+
 
      const updateValue = useCallback((path: string, value: any) => {
         if (activePageIndex === -1 && !path.startsWith('siteName') && !path.startsWith('theme')) return;
@@ -188,17 +241,34 @@ export const WebsiteBuilderProvider: React.FC<{ children: ReactNode }> = ({ chil
     }, []);
 
 
-    const replaceContent = useCallback((newContent: WebsiteContent) => {
-        setContent(newContent);
-    }, []);
+    const replaceContent = useCallback(async (newContent: WebsiteContent) => {
+        if (!user || !isFirebaseConfigured || !db) return;
+        setIsSaving(true);
+        try {
+            const contentToSave = {
+                ...newContent,
+                userId: user.uid,
+                lastUpdated: serverTimestamp()
+            };
+            const docRef = await addDoc(collection(db, 'websites'), contentToSave);
+            setDocId(docRef.id);
+            setContent(contentToSave);
+            setIsNewWebsite(false);
+            setLastSaved(new Date());
+        } catch (error) {
+            console.error("Error creating new website:", error);
+        } finally {
+            setIsSaving(false);
+        }
+    }, [user]);
 
     const value = { 
         content, 
         setContent, 
         updateValue, 
         toggleSectionVisibility, 
-        isSaving: false, // Never saving
-        lastSaved: null, // Never saved
+        isSaving,
+        lastSaved,
         isLoadingContent,
         isNewWebsite,
         setIsNewWebsite,

@@ -7,8 +7,9 @@ import {
     signOut,
     User as FirebaseUser
 } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { User } from '../types';
-import { isFirebaseConfigured, auth as firebaseAuth } from '../firebaseConfig';
+import { isFirebaseConfigured, auth as firebaseAuth, db } from '../firebaseConfig';
 
 
 interface AuthContextType {
@@ -29,30 +30,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    if (!isFirebaseConfigured || !firebaseAuth) {
+    if (!isFirebaseConfigured || !firebaseAuth || !db) {
       console.warn("Firebase Auth is not configured. Authentication will not work.");
       setIsInitializing(false);
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (firebaseUser: FirebaseUser | null) => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        const isAdmin = firebaseUser.email === 'admin@goonline.cloud';
+        const docRef = doc(db, 'users', firebaseUser.uid);
+        const docSnap = await getDoc(docRef);
         
-        // In a real app, this profile would be fetched from Firestore.
-        // Here, we create a default profile to ensure the app works smoothly.
-        const nameFromEmail = firebaseUser.email ? firebaseUser.email.split('@')[0] : 'New User';
-        const companyFromEmail = firebaseUser.email ? `${nameFromEmail}'s Business` : 'My Company';
+        if (docSnap.exists()) {
+            setUser({ uid: firebaseUser.uid, ...docSnap.data() } as User);
+        } else {
+            // If user exists in Auth but not in Firestore, create a profile.
+            const isAdmin = firebaseUser.email === 'admin@goonline.cloud';
+            const nameFromEmail = firebaseUser.email ? firebaseUser.email.split('@')[0] : 'New User';
+            const companyFromEmail = firebaseUser.email ? `${nameFromEmail}'s Business` : 'My Company';
 
-        const appUser: User = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            name: firebaseUser.displayName || nameFromEmail,
-            company: companyFromEmail,
-            plan: 'premium', // Placeholder
-            isAdmin: isAdmin,
-        };
-        setUser(appUser);
+            const appUser: User = {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email || '',
+                name: firebaseUser.displayName || nameFromEmail,
+                company: companyFromEmail,
+                plan: 'premium', // Default plan for new users
+                isAdmin: isAdmin,
+            };
+            await setDoc(docRef, appUser);
+            setUser(appUser);
+        }
       } else {
         setUser(null);
       }

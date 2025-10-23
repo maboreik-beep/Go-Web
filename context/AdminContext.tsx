@@ -1,71 +1,66 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
-// FIX: Import User type for plan management.
 import { AdminWebsiteView, User } from '../types';
+import { isFirebaseConfigured, db } from '../firebaseConfig';
+import { collection, getDocs, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { useAuth } from './AuthContext';
 
 interface AdminContextType {
   websites: AdminWebsiteView[];
   loading: boolean;
-  // FIX: Add updateUserPlan to the context type to match usage in UserManagementModal.
   updateUserPlan: (uid: string, plan: User['plan']) => Promise<void>;
+  fetchWebsites: () => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-// Mock data for the admin dashboard in preview mode.
-const MOCK_WEBSITES: AdminWebsiteView[] = [
-    {
-        id: 'website_1',
-        siteName: { en: 'Quantum Solutions', ar: 'الحلول الكمومية' },
-        slug: 'quantum-solutions',
-        isPublished: true,
-        lastUpdated: new Date(Date.now() - 86400000 * 2), // 2 days ago
-    },
-    {
-        id: 'website_2',
-        siteName: { en: 'Apex Construction', ar: 'قمة البناء' },
-        slug: 'apex-construction',
-        isPublished: true,
-        lastUpdated: new Date(Date.now() - 86400000 * 5), // 5 days ago
-    },
-    {
-        id: 'website_3',
-        siteName: { en: 'The Gourmet Kitchen', ar: 'المطبخ الذواقة' },
-        slug: 'gourmet-kitchen',
-        isPublished: false,
-        lastUpdated: new Date(Date.now() - 86400000 * 1), // 1 day ago
-    },
-     {
-        id: 'website_4',
-        siteName: 'Starlight Photography',
-        slug: undefined,
-        isPublished: false,
-        lastUpdated: new Date(Date.now() - 86400000 * 10), // 10 days ago
-    },
-];
 
 export const AdminProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [websites, setWebsites] = useState<AdminWebsiteView[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // In preview mode, just load the mock data.
-    setLoading(true);
-    setTimeout(() => { // Simulate a network delay
-        setWebsites(MOCK_WEBSITES);
+  const fetchWebsites = useCallback(async () => {
+    if (!isFirebaseConfigured || !db || !user?.isAdmin) {
         setLoading(false);
-    }, 500);
-  }, []);
+        return;
+    }
+    setLoading(true);
+    try {
+        const websitesCollection = collection(db, 'websites');
+        const websiteSnapshot = await getDocs(websitesCollection);
+        const websitesList = websiteSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                siteName: data.siteName,
+                slug: data.slug,
+                isPublished: data.isPublished,
+                lastUpdated: data.lastUpdated ? (data.lastUpdated as Timestamp).toDate() : new Date(),
+                userId: data.userId,
+                userEmail: data.userEmail || 'N/A' // userEmail should be stored on website doc
+            } as AdminWebsiteView
+        });
+        setWebsites(websitesList);
+    } catch (error) {
+        console.error("Error fetching websites: ", error);
+    } finally {
+        setLoading(false);
+    }
+  }, [user]);
 
-  // FIX: Provide a mock implementation for updateUserPlan to fix the error in UserManagementModal.
+  useEffect(() => {
+    fetchWebsites();
+  }, [fetchWebsites]);
+
   const updateUserPlan = useCallback(async (uid: string, plan: User['plan']) => {
-    console.log(`[MOCK] Updating plan for user ${uid} to ${plan}. This is a mock action.`);
-    // Simulate an API call delay.
-    await new Promise(resolve => setTimeout(resolve, 500));
-    // In a real app, this would involve a state update or refetch.
+    if (!isFirebaseConfigured || !db) return;
+    const userDocRef = doc(db, 'users', uid);
+    await updateDoc(userDocRef, { plan: plan });
+    // You might want to refetch users or update state here if displaying user info
   }, []);
 
   return (
-    <AdminContext.Provider value={{ websites, loading, updateUserPlan }}>
+    <AdminContext.Provider value={{ websites, loading, updateUserPlan, fetchWebsites }}>
       {children}
     </AdminContext.Provider>
   );

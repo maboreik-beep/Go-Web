@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useAdmin } from '../../context/AdminContext';
 import { Button } from '../common/Button';
 import { Logo } from '../common/Logo';
-import WebsiteList from './UserList';
+import WebsiteList from './WebsiteList';
 
 const TroubleshootingGuide = lazy(() => import('./TroubleshootingGuide'));
 
@@ -74,11 +74,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ navigateTo }) => {
     <div className="min-h-screen">
       <AdminHeader user={user} onLogout={logout} />
       <main className="p-8 md:p-12">
-        <h2 className="text-3xl font-bold text-light-100 mb-6">Dashboard Overview (Mock Data)</h2>
+        <h2 className="text-3xl font-bold text-light-100 mb-6">Dashboard Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <StatCard title="Total Websites" value={websites.length} />
-            <StatCard title="Published Sites" value={websites.filter(w => w.isPublished).length} />
-            <StatCard title="Draft Sites" value={websites.filter(w => !w.isPublished).length} />
+            <StatCard title="Total Websites" value={loading ? '...' : websites.length} />
+            <StatCard title="Published Sites" value={loading ? '...' : websites.filter(w => w.isPublished).length} />
+            <StatCard title="Draft Sites" value={loading ? '...' : websites.filter(w => !w.isPublished).length} />
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

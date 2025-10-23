@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export interface User {
   uid: string;
   email: string;
@@ -163,6 +165,8 @@ export interface WebsiteContent {
   siteName: TextContent;
   pages: Page[];
   activePageId: string;
+  userId: string;
+  lastUpdated?: Timestamp,
   // New fields for publishing
   slug?: string;
   isPublished?: boolean;
@@ -176,4 +180,6 @@ export interface AdminWebsiteView {
     slug?: string;
     isPublished?: boolean;
     lastUpdated: Date;
+    userId: string;
+    userEmail: string;
 }
