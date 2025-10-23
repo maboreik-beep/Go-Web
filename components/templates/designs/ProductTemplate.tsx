@@ -11,7 +11,8 @@ export const ProductTemplate: React.FC<TemplateProps> = (props) => {
     return (
         <TemplateWrapper {...props}>
             <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+            {/* FIX: Changed crossOrigin from "true" to "anonymous" to fix type error. */}
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
             <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
             
             <div className="bg-white">

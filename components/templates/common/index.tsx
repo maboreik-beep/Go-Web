@@ -13,20 +13,22 @@ export const ServiceIcon: React.FC<{icon: string}> = ({ icon }) => {
     return iconMap[icon] || iconMap.briefcase;
 };
 
-export const FAQAccordion: React.FC<{ q: string; a: string; }> = ({ q, a }) => {
+// FIX: Added optional 'isDark' prop to support dark-themed templates.
+export const FAQAccordion: React.FC<{ q: string; a: string; isDark?: boolean }> = ({ q, a, isDark = false }) => {
     const [isOpen, setIsOpen] = React.useState(false);
     return (
-        <div className="border-b border-gray-200 py-4">
+        <div className={`border-b py-4 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
             <button onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center text-left">
-                <h4 className="text-lg font-medium text-gray-800">{q}</h4>
-                <span className={`transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>&#9660;</span>
+                <h4 className={`text-lg font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{q}</h4>
+                <span className={`transform transition-transform duration-300 ${isDark ? 'text-gray-400' : ''} ${isOpen ? 'rotate-180' : ''}`}>&#9660;</span>
             </button>
             <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96' : 'max-h-0'}`}>
-                <p className="pt-2 text-gray-600">{a}</p>
+                <p className={`pt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{a}</p>
             </div>
         </div>
     );
 };
+
 
 interface TemplateWrapperProps extends TemplateProps {
     children: React.ReactNode;

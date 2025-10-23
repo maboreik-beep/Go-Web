@@ -38,7 +38,8 @@ const EditorHeader: React.FC<{
     return (
         <header className="bg-dark-200 h-[70px] flex items-center justify-between px-6 border-b border-dark-300 z-20 flex-shrink-0">
             <div className="flex items-center gap-4">
-                 <Button variant="ghost" size="sm" onClick={openAdminLogin}>Admin Portal</Button>
+                 {/* FIX: Removed invalid 'size' prop and replaced with className for styling. */}
+                 <Button variant="ghost" className="py-1 px-3 text-sm" onClick={openAdminLogin}>Admin Portal</Button>
             </div>
 
             <div className='hidden md:flex items-center gap-4'>
@@ -64,7 +65,8 @@ const TabletIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 
 const MobileIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>;
 const ChevronLeft = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
 const ChevronRight = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
-const ChevronUp = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" /></svg>;
+{/* FIX: Updated component to accept SVG props to allow passing className. */}
+const ChevronUp = (props: React.SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" {...props}><path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" /></svg>;
 
 
 const Editor: React.FC<EditorProps> = ({ openAdminLogin }) => {
