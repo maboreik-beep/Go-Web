@@ -14,4 +14,4 @@ export default function HomeyTemplate(_props: any) {
  * Add/remove as needed based on your project’s usage.
  */
 export const TemplateWrapper = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
-export const meta = { id: "homey", name: "Homey Template (stub)" };l
+export const meta = { id: "homey", name: "Homey Template (stub)" };
