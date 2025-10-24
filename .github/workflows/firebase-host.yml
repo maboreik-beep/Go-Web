@@ -8,6 +8,13 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+jobs:
+  run-template:
+    if: ${{ false }}             # <-- skip the template job entirely
+    uses: ./.github/workflows/template.yml
+    with:
+      # inputs...
+    secrets: inherit
 
     steps:
       - name: Checkout repository
