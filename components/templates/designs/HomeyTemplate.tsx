@@ -80,7 +80,8 @@ export const HomeyTemplate: React.FC<TemplateProps> = (props) => {
             </div>
           </section>
         )}
-
+</div>
+</section>
         {isVisible('about') && (
           <section className="py-24 px-6 bg-gray-50">
             <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
