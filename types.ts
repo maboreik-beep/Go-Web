@@ -23,7 +23,7 @@ export type NavigateTo = (view: AppView) => void;
 
 export type LanguageMode = 'en' | 'ar' | 'bilingual';
 
-export type TemplateId = 'default' | 'videograph' | 'karma' | 'consolution' | 'aranoz' | 'umeet' | 'dento' | 'arcade' | 'product' | 'homey' | 'pato' | 'jony' | 'academia' | 'lawncare';
+export type TemplateId = 'default' | 'videograph' | 'karma' | 'consolution' | 'aranoz' | 'umeet' | 'dento' | 'arcade' | 'product' | 'homey' | 'pato' | 'jony' | 'academia' | 'lawncare' | 'goonlinepro';
 
 export type PageType = 'BLANK' | 'ABOUT' | 'SERVICES' | 'CONTACT' | 'GALLERY' | 'PRODUCTS' | 'TEAM' | 'NEWS_EVENTS' | 'FEATURES' | 'TESTIMONIALS' | 'PRICING' | 'DOWNLOAD_CATALOG';
 

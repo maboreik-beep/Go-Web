@@ -14,7 +14,8 @@ export const TEMPLATES: { id: TemplateId; name: string; industries: string[] }[]
   { id: 'pato', name: 'Savor', industries: ['Restaurant', 'Coffee Shop'] },
   { id: 'jony', name: 'Profile', industries: ['Freelancer', 'Professional Profile', 'Fitness'] },
   { id: 'academia', name: 'Erudite', industries: ['Education'] },
-  { id: 'lawncare', name: 'Verdant', industries: ['Agriculture'] }
+  { id: 'lawncare', name: 'Verdant', industries: ['Agriculture'] },
+  { id: 'goonlinepro', name: 'Go Online Pro', industries: ['Gaming'] }
 ];
 
 
