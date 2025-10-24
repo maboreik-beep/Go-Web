@@ -1,47 +1,26 @@
-name: Deploy to Firebase (live)
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+name: firebase-hosting
+on: push
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: web   # <— your app folder
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: web/package-lock.json  # <— point to the lockfile
 
-      - name: Show Node & npm
-        run: |
-          node -v
-          npm -v
+      - run: npm ci
+      - run: npm run build
 
-      # Use install (not ci) so it works even if lockfile is missing
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build
-        run: npm run build
-        env:
-          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
-
-      - name: List dist (sanity check)
-        run: |
-          echo "Built files:"
-          ls -la dist || true
-
-      - name: Deploy to Firebase Hosting (live)
-        uses: FirebaseExtended/action-hosting-deploy@v0
+      - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
+          channelId: live
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-          channelId: live
