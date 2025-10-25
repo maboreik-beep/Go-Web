@@ -167,7 +167,7 @@ const EditorForm: React.FC = () => {
                         {section.id === 'form' && (
                            <>
                                 {renderTextInputs('Section Title', `${sectionPath}.title`, sectionData.title)}
-                                <Input label="Recipient Email" value={sectionData.recipientEmail} onChange={e => updateValue(`${sectionPath}.recipientEmail`, e.target.value)} type="email" placeholder="Form submissions will be sent here" />
+                                <Input label="Recipient Email" value={sectionData.recipientEmail} onChange={e => updateValue(`${sectionPath}.recipientEmail`, e.target.value)} type="email" placeholder="Form submissions will be sent to info@go-web.org" />
                                 {renderTextInputs('Button Text', `${sectionPath}.submitButtonText`, sectionData.submitButtonText)}
                            </>
                         )}

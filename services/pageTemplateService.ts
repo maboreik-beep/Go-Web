@@ -22,7 +22,7 @@ const createBasePage = (mode: LanguageMode): Omit<Page, 'id' | 'name' | 'slug' |
         // FIX: Added missing 'form' property to satisfy the SectionContent type.
         form: {
             title: '',
-            recipientEmail: '',
+            recipientEmail: 'info@go-web.org',
             submitButtonText: ''
         },
         contact: { title: '', address: '', email: '', phone: '' }
@@ -173,7 +173,7 @@ const getPageTemplate = (type: PageType, name: TextContent, languageMode: Langua
             newPage.content.faq.title = createDefaultText('Frequently Asked Questions', 'الأسئلة الشائعة', languageMode);
             newPage.content.faq.items = [
                 { question: createDefaultText('What are your business hours?', 'ما هي ساعات العمل لديكم؟', languageMode), answer: createDefaultText('We are open Monday to Friday, from 9 AM to 5 PM.', 'نحن نفتح من الاثنين إلى الجمعة، من الساعة 9 صباحًا حتى 5 مساءً.', languageMode) },
-                { question: createDefaultText('How can I get a quote?', 'كيف يمكنني الحصول على عرض أسعار؟', languageMode), answer: createDefaultText('You can get a quote by contacting us via email or phone, or by filling out the form on our website.', 'يمكنك الحصول على عرض أسعار عن طريق الاتصال بنا عبر البريد الإلكتروني أو الهاتف، أو عن طريق ملء النموذج على موقعنا.', languageMode) },
+                { question: createDefaultText('How can I get a quote?', 'كيف can I الحصول على عرض أسعار؟', languageMode), answer: createDefaultText('You can get a quote by contacting us via email or phone, or by filling out the form on our website.', 'يمكنك الحصول على عرض أسعار عن طريق الاتصال بنا عبر البريد الإلكتروني أو الهاتف، أو عن طريق ملء النموذج على موقعنا.', languageMode) },
             ] as FAQItem[];
             break;
         case 'GALLERY':

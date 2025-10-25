@@ -59,7 +59,7 @@ const createDefaultPage = (mode: LanguageMode): Page => {
             cta: { headline: createDefaultText('Ready?', 'هل أنت مستعد؟', mode), subheadline: createDefaultText('Join us today.', 'انضم إلينا اليوم.', mode), ctaButton: createDefaultText('Sign Up', 'سجل الآن', mode) },
             form: {
                 title: createDefaultText('Get in Touch', 'تواصل معنا', mode),
-                recipientEmail: 'your-email@example.com',
+                recipientEmail: 'info@go-web.org',
                 submitButtonText: createDefaultText('Send Message', 'إرسال رسالة', mode)
             },
             contact: {
